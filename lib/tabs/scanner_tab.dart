@@ -28,7 +28,27 @@ class ScannerTab extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('SCANNER', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1.2)),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('SCANNER', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1.2)),
+                          const SizedBox(height: 4),
+                          Text(
+                            ble.scanStatus,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: ble.scanStatus.contains('❌') || ble.scanStatus.contains('🚫') || ble.scanStatus.contains('🚨')
+                                  ? Colors.redAccent
+                                  : Colors.white54,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
                     ElevatedButton(
                       onPressed: ble.isScanning ? null : ble.startScan,
                       style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF38BDF8), foregroundColor: Colors.black),
@@ -42,11 +62,11 @@ class ScannerTab extends StatelessWidget {
                     itemCount: ble.scanResults.length,
                     itemBuilder: (context, index) {
                       final result = ble.scanResults[index];
-                      final name = result.device.localName.isEmpty ? 'Unknown' : result.device.localName;
+                      final name = result.device.platformName.isNotEmpty ? result.device.platformName : "Unknown";
                       return ListTile(
                         leading: const Icon(Icons.bluetooth_rounded, color: Color(0xFF38BDF8)),
                         title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text(result.device.id.toString(), style: const TextStyle(fontSize: 10, color: Colors.white54)),
+                        subtitle: Text(result.device.remoteId.toString(), style: const TextStyle(fontSize: 10, color: Colors.white54)),
                         trailing: Text('${result.rssi} dBm'),
                         onTap: () => ble.connect(result.device),
                       );
