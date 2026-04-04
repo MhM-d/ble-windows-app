@@ -82,7 +82,7 @@ class _MainScaffoldState extends State<MainScaffold> with SingleTickerProviderSt
           unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal),
           tabs: const [
             Tab(icon: Icon(Icons.dashboard_rounded), text: 'DASHBOARD'),
-            Tab(icon: Icon(Icons.show_chart_rounded), text: 'OSCILLOSCOPE'),
+            Tab(icon: Icon(Icons.show_chart_rounded), text: 'DATA MONITOR'),
             Tab(icon: Icon(Icons.settings_rounded), text: 'SCANNER & LOG'),
           ],
         ),
