@@ -70,7 +70,7 @@ class _MainScaffoldState extends State<MainScaffold> with SingleTickerProviderSt
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('BLE COMMAND CENTER', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 2.0, fontSize: 20)),
+        title: const Text('BLE MONITOR DASHBOARD', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 2.0, fontSize: 20)),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
