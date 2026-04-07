@@ -1,4 +1,4 @@
-# BLE Plug and Play Desktop Data Monitoring App
+# Bluetooth Low Energy (BLE) Desktop Data Monitoring App
 
 A premium, high-performance Flutter desktop application designed for real-time Bluetooth Low Energy (BLE) telemetry and monitoring. Built specifically for Windows, this tool provides a professional-grade interface for interacting with BLE servers (such as ESP32, Arduino, or custom embedded modules).
 
