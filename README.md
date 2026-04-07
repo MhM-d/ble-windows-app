@@ -1,4 +1,4 @@
-# Advanced Desktop BLE Monitor
+# BLE Plug and Play Desktop Data Monitoring App
 
 A premium, high-performance Flutter desktop application designed for real-time Bluetooth Low Energy (BLE) telemetry and monitoring. Built specifically for Windows, this tool provides a professional-grade interface for interacting with BLE servers (such as ESP32, Arduino, or custom embedded modules).
 
@@ -11,10 +11,19 @@ This app is part of a dual-repo ecosystem, intended to be used alongside a dedic
 ## ✨ Key Features
 
 - **📡 Advanced Scanner**: Robust device discovery with signal strength (RSSI) monitoring and name filtering.
+<img width="3836" height="2058" alt="image" src="https://github.com/user-attachments/assets/cec9420b-eed5-425f-b1c9-0ae097dcd5f9" />
+
 - **📊 Real-time Data Monitor**: An integrated oscilloscope-style visualization tab capable of plotting high-frequency data streams using hardware-accelerated charts.
+<img width="3840" height="2058" alt="image" src="https://github.com/user-attachments/assets/4b4932f8-9945-482d-866c-4f727d6fcd19" />
+
 - **🏠 Integrated Dashboard**: A centralized view for device status, connection stability, and core metrics.
+<img width="3822" height="2048" alt="image" src="https://github.com/user-attachments/assets/c8d85354-da6f-48f5-9e77-cbfb76f9f5f6" />
+
 - **💾 CSV Data Logging**: Capture and export received BLE data directly to CSV files for post-processing and analysis.
+<img width="1890" height="1722" alt="image" src="https://github.com/user-attachments/assets/44a465b9-b024-4830-8f34-47e316b5de06" />
+
 - **🎨 Premium UI/UX**: Dark-themed, modern interface built with Flutter's Material 3 design system, optimized for desktop use.
+<img width="3834" height="2056" alt="image" src="https://github.com/user-attachments/assets/cfdb5b7d-a24b-4635-b8ba-9a52c9f357fa" />
 
 ## 🛠️ Prerequisites & Dependencies
 
