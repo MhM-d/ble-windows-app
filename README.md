@@ -14,7 +14,7 @@ This app is part of a dual-repo ecosystem, intended to be used alongside a dedic
 <img width="3836" height="2058" alt="image" src="https://github.com/user-attachments/assets/cec9420b-eed5-425f-b1c9-0ae097dcd5f9" />
 
 - **📊 Real-time Data Monitor**: An integrated oscilloscope-style visualization tab capable of plotting high-frequency data streams using hardware-accelerated charts.
-<img width="3840" height="2058" alt="image" src="https://github.com/user-attachments/assets/4b4932f8-9945-482d-866c-4f727d6fcd19" />
+<img width="3834" height="2072" alt="image" src="https://github.com/user-attachments/assets/4f24851a-8b2d-4f9c-a05e-9cc0f75fda3f" />
 
 - **🏠 Integrated Dashboard**: A centralized view for device status, connection stability, and core metrics.
 <img width="3822" height="2048" alt="image" src="https://github.com/user-attachments/assets/c8d85354-da6f-48f5-9e77-cbfb76f9f5f6" />
