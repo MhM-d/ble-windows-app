@@ -10,6 +10,8 @@ class ChartConfig {
   int channelIndex;
   double yZoom;
   double xZoom;
+  double yOffset;
+  bool isPanMode;
   final Color primaryColor;
   final Color accentColor;
 
@@ -17,6 +19,8 @@ class ChartConfig {
     required this.channelIndex,
     this.yZoom = 1.0,
     this.xZoom = 1.0,
+    this.yOffset = 0.0,
+    this.isPanMode = false,
     required this.primaryColor,
     required this.accentColor,
   });
@@ -114,17 +118,63 @@ class TelemetryChartCard extends StatelessWidget {
     onUpdate();
   }
 
+  void _togglePanMode() {
+    config.isPanMode = !config.isPanMode;
+    if (!config.isPanMode) config.yOffset = 0.0; // Snap back to auto-scale logic
+    onUpdate();
+  }
+
+  void _handlePanUpdate(DragUpdateDetails details, double chartHeight, double currentRange) {
+    if (!config.isPanMode) return;
+    // Map vertical pixel delta to chart units: deltaY in pixels * (visibleRange / widgetHeight)
+    // Drag data down (pos pixels) -> move view down (dec axis values)
+    double deltaUnits = details.delta.dy * (currentRange / chartHeight);
+    config.yOffset -= deltaUnits;
+    onUpdate();
+  }
+
   @override
   Widget build(BuildContext context) {
     final ble = context.watch<BLEProvider>();
     final history = ble.history[config.channelIndex];
+    final totalSamples = ble.totalSamples;
 
-    // Calculate Y-scale based on zoom
-    double maxY = 255 / config.yZoom;
+    // Calculate Y-scale based on default [-100, 100] or expanded data range
+    double minY = -100;
+    double maxY = 100;
     
-    // Calculate X-scale based on zoom
-    double windowSize = BLEProvider.maxHistoryLen / config.xZoom;
-    double minX = BLEProvider.maxHistoryLen - windowSize;
+    if (history.isNotEmpty) {
+      double minData = history.reduce((a, b) => a < b ? a : b);
+      double maxData = history.reduce((a, b) => a > b ? a : b);
+      
+      // Expand thresholds if data is outside [-100, 100]
+      if (minData < -100) minY = minData - 20; // Some extra room
+      if (maxData > 100) maxY = maxData + 20;
+
+      // Adjust for Y Zoom
+      if (config.yZoom > 1.0) {
+        double center = (minY + maxY) / 2;
+        double zoomedRange = (maxY - minY) / config.yZoom;
+        minY = center - (zoomedRange / 2);
+        maxY = center + (zoomedRange / 2);
+      }
+    }
+    
+    // Add manual Y-axis panning offset
+    minY += config.yOffset;
+    maxY += config.yOffset;
+    
+    // Fixed 100-unit window sliding logic
+    // Start with 0 to 100, then slide to (totalSamples - 100) to totalSamples
+    double maxX = totalSamples.toDouble() > 100 ? totalSamples.toDouble() : 100.0;
+    double minX = maxX - 100.0;
+
+    // Generate spots using absolute sample indices
+    int startIdx = totalSamples - history.length;
+    List<FlSpot> spots = [];
+    for (int i = 0; i < history.length; i++) {
+      spots.add(FlSpot((startIdx + i).toDouble(), history[i]));
+    }
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(20),
@@ -156,73 +206,80 @@ class TelemetryChartCard extends StatelessWidget {
                       }
                     }
                   },
-                  child: LineChart(
-                    LineChartData(
-                      gridData: FlGridData(
-                        show: true, 
-                        drawVerticalLine: true,
-                        getDrawingHorizontalLine: (value) => const FlLine(color: Colors.white10, strokeWidth: 1),
-                        getDrawingVerticalLine: (value) => const FlLine(color: Colors.white10, strokeWidth: 1),
-                      ),
-                      titlesData: FlTitlesData(
-                        show: true,
-                        topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                        rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                        bottomTitles: AxisTitles(
-                          sideTitles: SideTitles(
-                            showTitles: true,
-                            reservedSize: 22,
-                            interval: windowSize / 8, // Increased tick density
-                            getTitlesWidget: (value, meta) {
-                              if (value == meta.min || value == meta.max) return const SizedBox.shrink();
-                              return SideTitleWidget(
-                                axisSide: meta.axisSide,
-                                child: Text((value - BLEProvider.maxHistoryLen).toStringAsFixed(1), 
-                                  style: TextStyle(fontSize: 8, color: Colors.white.withOpacity(0.4))),
-                              );
-                            },
-                          ),
-                        ),
-                        leftTitles: AxisTitles(
-                          sideTitles: SideTitles(
-                            showTitles: true,
-                            reservedSize: 38, // Slightly more space for decimals
-                            interval: maxY / 6, // Increased tick density
-                            getTitlesWidget: (value, meta) => SideTitleWidget(
-                              axisSide: meta.axisSide,
-                              child: Text(value.toStringAsFixed(1), 
-                                style: TextStyle(fontSize: 8, color: Colors.white.withOpacity(0.4))),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return GestureDetector(
+                        onVerticalDragUpdate: (details) => _handlePanUpdate(details, constraints.maxHeight, maxY - minY),
+                        child: LineChart(
+                          LineChartData(
+                            gridData: FlGridData(
+                              show: true, 
+                              drawVerticalLine: true,
+                              getDrawingHorizontalLine: (value) => const FlLine(color: Colors.white10, strokeWidth: 1),
+                              getDrawingVerticalLine: (value) => const FlLine(color: Colors.white10, strokeWidth: 1),
                             ),
-                          ),
-                        ),
-                      ),
-                      borderData: FlBorderData(show: true, border: Border.all(color: Colors.white10, width: 1)),
-                      minX: minX,
-                      maxX: BLEProvider.maxHistoryLen.toDouble(),
-                      minY: 0,
-                      maxY: maxY,
-                      lineBarsData: [
-                        LineChartBarData(
-                          spots: history.asMap().entries.map((e) => FlSpot(e.key.toDouble(), e.value)).toList(),
-                          isCurved: true,
-                          curveSmoothness: 0.35,
-                          gradient: LinearGradient(colors: [config.primaryColor, config.accentColor]),
-                          barWidth: 2.5,
-                          isStrokeCapRound: true,
-                          dotData: const FlDotData(show: false),
-                          belowBarData: BarAreaData(
-                            show: true,
-                            gradient: LinearGradient(
-                              colors: [config.primaryColor.withOpacity(0.2), Colors.transparent],
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
+                            titlesData: FlTitlesData(
+                              show: true,
+                              topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                              rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                              bottomTitles: AxisTitles(
+                                sideTitles: SideTitles(
+                                  showTitles: true,
+                                  reservedSize: 22,
+                                  interval: 20, // Consistent interval for readability
+                                  getTitlesWidget: (value, meta) {
+                                    return SideTitleWidget(
+                                      axisSide: meta.axisSide,
+                                      child: Text(value.toInt().toString(), 
+                                        style: TextStyle(fontSize: 8, color: Colors.white.withOpacity(0.4))),
+                                    );
+                                  },
+                                ),
+                              ),
+                              leftTitles: AxisTitles(
+                                sideTitles: SideTitles(
+                                  showTitles: true,
+                                  reservedSize: 38, // Slightly more space for decimals
+                                  interval: (maxY - minY) / 6, // Evenly space ticks across the full range
+                                  getTitlesWidget: (value, meta) => SideTitleWidget(
+                                    axisSide: meta.axisSide,
+                                    child: Text(value.toStringAsFixed(1), 
+                                      style: TextStyle(fontSize: 8, color: Colors.white.withOpacity(0.4))),
+                                  ),
+                                ),
+                              ),
                             ),
+                            borderData: FlBorderData(show: true, border: Border.all(color: Colors.white10, width: 1)),
+                            clipData: const FlClipData.all(), // Fix visual crossing out of bounds
+                            minX: minX,
+                            maxX: maxX,
+                            minY: minY,
+                            maxY: maxY,
+                            lineBarsData: [
+                              LineChartBarData(
+                                spots: spots,
+                                isCurved: true,
+                                curveSmoothness: 0.35,
+                                gradient: LinearGradient(colors: [config.primaryColor, config.accentColor]),
+                                barWidth: 2.5,
+                                isStrokeCapRound: true,
+                                dotData: const FlDotData(show: false),
+                                belowBarData: BarAreaData(
+                                  show: true,
+                                  gradient: LinearGradient(
+                                    colors: [config.primaryColor.withOpacity(0.2), Colors.transparent],
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
+                          duration: const Duration(milliseconds: 150),
+                          curve: Curves.easeInOut,
                         ),
-                      ],
-                    ),
-                    duration: const Duration(milliseconds: 150),
-                    curve: Curves.easeInOut,
+                      );
+                    }
                   ),
                 ),
               ),
@@ -288,6 +345,8 @@ class TelemetryChartCard extends StatelessWidget {
           children: [
             _buildZoomControl('Y', () => _adjustYZoom(0.5), () => _adjustYZoom(-0.5)),
             const SizedBox(width: 8),
+            _panBtn(),
+            const SizedBox(width: 8),
             _buildZoomControl('X', () => _adjustXZoom(0.5), () => _adjustXZoom(-0.5)),
           ],
         ),
@@ -328,6 +387,26 @@ class TelemetryChartCard extends StatelessWidget {
       constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
       color: Colors.white60,
       splashRadius: 12,
+    );
+  }
+
+  Widget _panBtn() {
+    return Container(
+      height: 28,
+      decoration: BoxDecoration(
+        color: config.isPanMode ? config.primaryColor.withOpacity(0.2) : Colors.white.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: config.isPanMode ? config.primaryColor.withOpacity(0.5) : Colors.white.withOpacity(0.1)),
+      ),
+      child: IconButton(
+        icon: Icon(config.isPanMode ? Icons.pan_tool_rounded : Icons.pan_tool_outlined, size: 12),
+        onPressed: _togglePanMode,
+        padding: EdgeInsets.zero,
+        constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+        color: config.isPanMode ? config.primaryColor : Colors.white60,
+        splashRadius: 12,
+        tooltip: 'Pan Mode (Drag Y-Axis)',
+      ),
     );
   }
 }

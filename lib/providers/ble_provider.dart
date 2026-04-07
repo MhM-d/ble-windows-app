@@ -17,6 +17,8 @@ class BLEProvider with ChangeNotifier {
   final List<List<double>> _history = List.generate(20, (_) => []);
   static const int maxHistoryLen = 100;
 
+  int _totalSamples = 0;
+
   // Getters
   BluetoothDevice? get connectedDevice => _connectedDevice;
   bool get isConnected => _isConnected;
@@ -25,6 +27,7 @@ class BLEProvider with ChangeNotifier {
   String get scanStatus => _scanStatus;
   List<int> get currentData => _currentData;
   List<List<double>> get history => _history;
+  int get totalSamples => _totalSamples;
 
   StreamSubscription? _scanSub;
   StreamSubscription? _connSub;
@@ -128,6 +131,8 @@ class BLEProvider with ChangeNotifier {
       _connSub?.cancel();
       _connSub = device.connectionState.listen((state) {
         if (state == BluetoothConnectionState.connected) {
+          _totalSamples = 0; // Reset counter on new connection
+          for (var h in _history) h.clear(); // Clear all history lists
           _handleSuccessfulConnection(device);
         } else if (state == BluetoothConnectionState.disconnected) {
           _handleDisconnect();
@@ -179,6 +184,7 @@ class BLEProvider with ChangeNotifier {
       _history[i].add(_currentData[i].toDouble());
       if (_history[i].length > maxHistoryLen) _history[i].removeAt(0);
     }
+    _totalSamples++;
     notifyListeners();
   }
 
