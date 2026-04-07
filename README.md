@@ -23,7 +23,6 @@ This app is part of a dual-repo ecosystem, intended to be used alongside a dedic
 <img width="1890" height="1722" alt="image" src="https://github.com/user-attachments/assets/44a465b9-b024-4830-8f34-47e316b5de06" />
 
 - **🎨 Premium UI/UX**: Dark-themed, modern interface built with Flutter's Material 3 design system, optimized for desktop use.
-<img width="3834" height="2056" alt="image" src="https://github.com/user-attachments/assets/cfdb5b7d-a24b-4635-b8ba-9a52c9f357fa" />
 
 ## 🛠️ Prerequisites & Dependencies
 
