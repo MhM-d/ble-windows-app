@@ -94,7 +94,7 @@ The compiled output will be located in:
 ---
 
 ## 🤝 Relationship with BLE Module
-This desktop application expects a BLE Server with a specific characteristic protocol for optimal data streaming and assigning the correct data to each of the 20 channels in the app GUI. The repository containing the Nimble server source code (ESP32/NimBLE) is avaible at [Nimble Server](https://github.com/MhM-d/esp32-nimble-ble-server.git) to serve as the perfect companion for this desktop dashboard. 
+This desktop application expects a BLE Server with a specific characteristic protocol for optimal data streaming and assigning the correct data to each of the 20 channels in the app GUI. The repository containing the Nimble server source code (ESP32/NimBLE) is avaible at [Nimble Server](https://github.com/MhM-d/esp32-nimble.git) to serve as the perfect companion for this desktop dashboard. 
 
 ## 📝 License
 This project is licensed under the MIT License - see the LICENSE file for details.
